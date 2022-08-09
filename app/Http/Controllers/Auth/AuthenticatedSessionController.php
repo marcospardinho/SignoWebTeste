@@ -18,17 +18,14 @@ use RealRashid\SweetAlert\Facades\Alert;
 
 class AuthenticatedSessionController extends Controller
 {
-    /**
-     * Display the login view.
-     *
-     * @return \Illuminate\View\View
-     */
+    // Redirecionamento para página Login
     public function create()
     {
      
         return view('auth.login');
     }
 
+    // Validação Back-end e retorno para página Password
     public function password(Request $request)
     {
         $request->validate([
@@ -39,44 +36,17 @@ class AuthenticatedSessionController extends Controller
 
         if (isset($user))
         {
-
             $email = $user->email;
             return view('auth.password',compact('email'));
         }
 
-        $client = Cliente::where('email',$request->user)->orWhere('cpf',$request->user)->orWhere('cnpj',$request->user)->first();
 
-        if (isset($client)) {
-
-            $telefone = $client->telefone;
-            $email = $client->email;
-            $Msgtext = 'Agora consulte seu email ou caixa SMS para achar o código de acesso RapidoPark.';
-
-            $find = ClienteToken::where('cliente_id',$client->id)
-            ->where('updated_at', '>=', now()->subMinutes(5))
-            ->first();
-
-            if (is_null($find)) {
-                $client->generateToken();
-                $Msgtext = 'Foi gerado um novo código de acesso, Verifique seu Email ou SMS.';
-            }
-
-            Alert::toast($Msgtext, 'success');
-            return view('VerifyCode',compact('telefone','email'));
-
-        }
-
-        Alert::toast('Escolha uma unidade para fazer o cadastro na RapidoPark.', 'warning');
+        Alert::toast('Nada foi encontrado, cadastre-se como Administrador', 'warning');
         return redirect()->route('home');;
 
     }
 
-    /**
-     * Handle an incoming authentication request.
-     *
-     * @param  \App\Http\Requests\Auth\LoginRequest  $request
-     * @return \Illuminate\Http\RedirectResponse
-     */
+    // Verificação Back-end e Criação da Sessão de Login
     public function store(LoginRequest $request)
     {
         $credentials  = $request->only('email','password');
@@ -93,12 +63,7 @@ class AuthenticatedSessionController extends Controller
 
     }
 
-    /**
-     * Destroy an authenticated session.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\RedirectResponse
-     */
+    // Verificação do middleware e destruição de sessão de login
     public function destroy(Request $request)
     {
         Auth::guard('web')->logout();

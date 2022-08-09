@@ -27,7 +27,7 @@ Route::controller(ClientController::class)->group(function () {
 Route::controller(Controller::class)->group(function () {
     Route::get('/', 'home')->name('home');
     Route::get('/dashboard', 'dashboard')->middleware(['auth'])->name('dashboard');
-    Route::post('/storeClient', 'storeCliente')->name('storeCad');
+    Route::post('/storeAdmin', 'storeAdmin')->name('storeCad');
     Route::get('/cadastro', 'register')->name('cadastro');
 });
 

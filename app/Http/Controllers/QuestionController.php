@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreQuestion;
 use App\Models\Apuracao;
-use App\Models\Assembleia;
 use App\Models\Enquete;
 use App\Models\Opcoes;
 use DateTime;
@@ -16,33 +15,26 @@ use RealRashid\SweetAlert\Facades\Alert;
 class QuestionController extends Controller
 {
 
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
+   
+
+    // Listagem de Enquetes e Redirecionamento para Dash de Enquetes
+
     public function list()
     {
         $enquetes = Enquete::where([['id_user', '=', Auth::guard("web")->user()->id]])->with('opcoes')->get();
 
         return view('quest.question', compact('enquetes'));
     }
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
+    
+    // CRUD Enquetes(Inicio)
+    // Redirecionamento para página de cadastro de enquete
+
     public function index()
     {
         return view('quest.questionCreate');
     }
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
+    // Validação Back-End e cadastro da Enquete
     public function create(StoreQuestion $request)
     {
 
@@ -72,13 +64,7 @@ class QuestionController extends Controller
         return redirect()->route('question.index', $request->assembleia);
     }
 
-
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
+    // Redirecionamento para página de edição de enquete 
     public function edit(Enquete $question)
     {
         if ($question->apuracao()->exists()) {
@@ -97,13 +83,7 @@ class QuestionController extends Controller
         return view('quest.questionEdit', compact('question'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
+    // Validação Back-End e edição da Enquete
     public function update(StoreQuestion $request, Enquete $question)
     {
         $datainicio = explode(" ", $request->dtinicio);
@@ -140,57 +120,7 @@ class QuestionController extends Controller
         return redirect()->route('question.index', $request->assembleia);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function questionary(Enquete $enquete)
-    {
-        if (Enquete::where([['id_enquete', '=', $enquete->id_enquete], ['fim', '>', now()]])->count() == 0) {
-            Alert::error('Esta enquete já foi encerrada!', 'A Enquete T agradece sua participação.')->autoClose(5000);
-            return redirect()->route('home');
-        }
-
-        $localIP = getHostByName(getHostName());
-
-        $apuracao = Apuracao::where([['id_enquete', '=', $enquete->id_enquete], ['id_participante', '=', $localIP]])->first();
-
-        return view('quest.questionary', compact('enquete', 'apuracao'));
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function storeQuest(Request $request, Enquete $enquete)
-    {
-        if($request["$enquete->id_enquete"] == null)
-        {
-            Alert::warning('Enquete', 'Marque uma opção para ser cadastrada !');
-            return redirect()->route('questionary', compact('enquete'));
-        }
-
-        $localIP = getHostByName(getHostName());
-
-        $apuracao = new Apuracao();
-        $apuracao->id_enquete = $enquete->id_enquete;
-        $apuracao->id_opcao = $request["$enquete->id_enquete"];
-        $apuracao->id_participante = $localIP;
-        $apuracao->save();
-
-        return view('quest.questionary', compact('enquete', 'apuracao'));
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
+    // Validação Back-End e exclusão da Enquete
     public function destroy(Request $request)
     {
         if (!$enquete = Enquete::find($request->id)) {
@@ -210,4 +140,41 @@ class QuestionController extends Controller
         Alert::success('Enquete', 'Apagada com Sucesso !');
         return redirect()->route('question.index');
     }
+
+    // Listagem ,verificação da enquete(se ativa ou não) e verificação de voto
+    public function questionary(Enquete $enquete)
+    {
+        if (Enquete::where([['id_enquete', '=', $enquete->id_enquete], ['fim', '>', now()]])->count() == 0) {
+            Alert::error('Esta enquete já foi encerrada!', 'A Enquete T agradece sua participação.')->autoClose(5000);
+            return redirect()->route('home');
+        }
+
+        $localIP = getHostByName(getHostName());
+
+        $apuracao = Apuracao::where([['id_enquete', '=', $enquete->id_enquete], ['id_participante', '=', $localIP]])->first();
+
+        return view('quest.questionary', compact('enquete', 'apuracao'));
+    }
+
+    // Verificação Back-end e cadastro do voto do usuário para a enquete
+    public function storeQuest(Request $request, Enquete $enquete)
+    {
+        if($request["$enquete->id_enquete"] == null)
+        {
+            Alert::warning('Enquete', 'Marque uma opção para ser cadastrada !');
+            return redirect()->route('questionary', compact('enquete'));
+        }
+
+        $localIP = getHostByName(getHostName());
+
+        $apuracao = new Apuracao();
+        $apuracao->id_enquete = $enquete->id_enquete;
+        $apuracao->id_opcao = $request["$enquete->id_enquete"];
+        $apuracao->id_participante = $localIP;
+        $apuracao->save();
+
+        return view('quest.questionary', compact('enquete', 'apuracao'));
+    }
+
+    
 }

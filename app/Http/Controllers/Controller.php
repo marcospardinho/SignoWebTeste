@@ -17,7 +17,7 @@ class Controller extends BaseController
 {
     use AuthorizesRequests, DispatchesJobs, ValidatesRequests;
 
-
+    // Redirecionamento para página principal(quests) do cliente e definição das variáveis contendo as enquetes respectivas
     public function home(){
         $ultimasEnquetes = Enquete::latest()->limit(2)->get();
         
@@ -28,18 +28,21 @@ class Controller extends BaseController
         return view('quests', compact('enquetesFinalizadas', 'ultimasEnquetes', 'enquetesAIniciar', 'enquetesEmAndamento'));
     }
 
+    // Redirecionamento para página principal(quests) do Administrador
     public function dashboard()
     {
         $admin = User::get();
         return view('dashboard', compact('admin'));
     }
 
+    // Redirecionamento para página de cadastro do Administrador
     public function register()
     {
         return view('auth.cadastro');
     }
 
-    public function storeCliente(Request $request)
+    // Verificação Back-end e Cadastro de Administrador
+    public function storeAdmin(Request $request)
     {
         
         $cpf = preg_replace("/[^0-9]/", "", $request->cpf);
